@@ -1,0 +1,10 @@
+{
+  "name": "投籃追蹤器",
+  "short_name": "投籃追蹤",
+  "description": "個人籃球投籃命中率與訓練紀錄",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#111827",
+  "lang": "zh-Hant"
+}

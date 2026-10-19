@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="description" content="個人籃球投籃命中率與訓練紀錄">
+<link rel="manifest" href="manifest.webmanifest">
+<title>投籃追蹤器</title>
+<style>
+:root{--bg:#0b1020;--panel:#151d31;--panel2:#1d2942;--text:#f4f7fb;--muted:#aab6cc;--green:#29c78a;--red:#ff6577;--orange:#ffb454;--line:#2c3954}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;font-size:16px}
+header{padding:18px 16px 12px;background:linear-gradient(135deg,#111827,#1d2942);position:sticky;top:0;z-index:3;border-bottom:1px solid var(--line)}
+.headrow{display:flex;justify-content:space-between;align-items:center;gap:12px}h1{font-size:21px;margin:0} .sub{color:var(--muted);font-size:12px;margin-top:4px}
+.tabs{display:flex;gap:8px;padding:10px 12px;background:var(--bg);position:sticky;top:75px;z-index:2}
+.tab{flex:1;border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:12px;padding:11px 4px;font-weight:700}
+.tab.active{background:#e8edf7;color:#101827;border-color:#e8edf7}
+main{padding:10px 12px 30px;max-width:720px;margin:auto}.view{display:none}.view.active{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}
+input,select,textarea{width:100%;border-radius:10px;border:1px solid var(--line);background:#0d1528;color:var(--text);padding:12px;font:inherit}
+.row{display:flex;gap:10px}.row>*{flex:1;min-width:0}.field{margin-bottom:12px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.metric{background:var(--panel2);border-radius:12px;padding:12px 8px;text-align:center}.metric strong{display:block;font-size:25px;line-height:1.25}.metric span{font-size:12px;color:var(--muted)}
+.shotbtns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.bigbtn{border:0;border-radius:16px;min-height:94px;font-size:23px;font-weight:900;color:#07131b}.make{background:var(--green)}.miss{background:var(--red)}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:11px;padding:11px 13px;font-weight:700}.btn.primary{background:#e8edf7;color:#101827;border-color:#e8edf7}.btn.warn{color:var(--orange)}.btnrow{display:flex;gap:8px;flex-wrap:wrap}.btnrow button{flex:1}
+.small{font-size:12px;color:var(--muted)}.center{text-align:center}.progress{height:8px;background:#0d1528;border-radius:8px;overflow:hidden;margin-top:8px}.bar{height:100%;background:var(--green);width:0}
+h2{font-size:17px;margin:0 0 12px}.sectionhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.listitem{border-top:1px solid var(--line);padding:12px 0}.listitem:first-child{border-top:0}.itemtop{display:flex;justify-content:space-between;gap:8px;align-items:center}.pill{font-size:12px;border-radius:20px;padding:4px 8px;background:var(--panel2);color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:9px 5px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600}
+.empty{color:var(--muted);text-align:center;padding:24px 8px}.note{background:#302817;border:1px solid #5c4925;color:#ffe0a8;padding:10px;border-radius:10px;font-size:12px}
+footer{color:var(--muted);font-size:11px;text-align:center;padding:12px}
+@media(min-width:600px){main{padding-top:16px}.bigbtn{min-height:110px}.tabs{max-width:720px;margin:auto}}
+</style>
+</head>
+<body>
+<header><div class="headrow"><div><h1>🏀 投籃追蹤器</h1><div class="sub">每球一按・即時命中率・長期訓練紀錄</div></div><span class="pill" id="statusPill">本機保存</span></div></header>
+<nav class="tabs">
+<button class="tab active" data-view="train">訓練</button><button class="tab" data-view="history">歷史</button><button class="tab" data-view="analysis">分析</button><button class="tab" data-view="backup">備份</button>
+</nav>
+<main>
+<section class="view active" id="train">
+<div class="card">
+<div class="row"><div class="field"><label for="sessionDate">訓練日期</label><input type="date" id="sessionDate"></div><div class="field"><label for="sessionName">訓練名稱（選填）</label><input id="sessionName" placeholder="例如：底角三分"></div></div>
+<div class="row"><div class="field"><label for="shotType">球種</label><select id="shotType"><option value="兩分球">兩分球</option><option value="三分球">三分球</option><option value="罰球">罰球</option><option value="上籃">上籃</option><option value="其他">其他</option></select></div><div class="field"><label for="shotSpot">投籃位置</label><select id="shotSpot"><option>籃下</option><option>左側近距離</option><option>右側近距離</option><option>左側中距離</option><option>正面中距離</option><option>右側中距離</option><option>左底角三分</option><option>左側 45° 三分</option><option>弧頂三分</option><option>右側 45° 三分</option><option>右底角三分</option><option>罰球線</option><option>自訂位置</option></select></div></div>
+<div class="field" id="customWrap" style="display:none"><label for="customSpot">自訂位置</label><input id="customSpot" placeholder="輸入位置名稱"></div>
+<div class="metrics"><div class="metric"><strong id="made">0</strong><span>命中</span></div><div class="metric"><strong id="attempts">0</strong><span>出手</span></div><div class="metric"><strong id="pct">0%</strong><span>命中率</span></div></div>
+<div class="progress"><div class="bar" id="progressBar"></div></div>
+<div class="shotbtns"><button class="bigbtn make" id="makeBtn">✓ 命中</button><button class="bigbtn miss" id="missBtn">✕ 投失</button></div>
+<div class="metrics"><div class="metric"><strong id="streak">0</strong><span>目前連續命中</span></div><div class="metric"><strong id="bestStreak">0</strong><span>本次最多連中</span></div><div class="metric"><strong id="missStreak">0</strong><span>目前連續投失</span></div></div>
+<div class="btnrow"><button class="btn" id="undoBtn">↶ 撤銷上一球</button><button class="btn warn" id="clearBtn">清除此回合</button></div>
+<div class="field" style="margin-top:12px"><label for="sessionNotes">訓練備註（選填）</label><textarea id="sessionNotes" rows="2" placeholder="例如：接球出手較穩，疲勞後短球增加"></textarea></div>
+<div class="btnrow"><button class="btn primary" id="saveBtn">儲存並結束訓練</button><button class="btn" id="newBtn">開始新回合</button></div>
+<div class="small" style="margin-top:10px">每次按下命中／投失會立即暫存於本機。結束訓練可將回合加入歷史紀錄。</div>
+</div>
+</section>
+<section class="view" id="history">
+<div class="card"><div class="sectionhead"><h2>歷史訓練</h2><span class="pill" id="sessionCount">0 次</span></div><div id="historyList" class="empty">尚無已儲存的訓練</div></div>
+</section>
+<section class="view" id="analysis">
+<div class="card"><h2>全部訓練總覽</h2><div class="metrics"><div class="metric"><strong id="allMade">0</strong><span>總命中</span></div><div class="metric"><strong id="allAttempts">0</strong><span>總出手</span></div><div class="metric"><strong id="allPct">0%</strong><span>總命中率</span></div></div><div class="small" id="analysisSummary">儲存訓練後會顯示統計。</div></div>
+<div class="card"><h2>依球種分析</h2><div id="typeStats"></div></div>
+<div class="card"><h2>依投籃位置分析</h2><div id="spotStats"></div></div>
+<div class="card"><h2>最近 10 次訓練</h2><div id="recentStats"></div></div>
+</section>
+<section class="view" id="backup">
+<div class="card"><h2>資料備份與還原</h2><p class="small">資料預設保存在這台手機的瀏覽器中。建議定期匯出備份，避免清除網站資料或更換手機造成遺失。</p>
+<div class="btnrow"><button class="btn primary" id="exportJson">匯出完整備份（JSON）</button><button class="btn" id="exportCsv">匯出投籃明細（CSV）</button></div>
+<div class="field" style="margin-top:16px"><label for="importFile">從 JSON 備份還原</label><input type="file" id="importFile" accept=".json,application/json"></div>
+<div class="note">注意：匯入備份會以備份中的資料取代目前紀錄。匯出檔案請存到 Google Drive 或其他安全位置。</div>
+<div class="btnrow" style="margin-top:14px"><button class="btn warn" id="deleteAll">刪除所有歷史資料</button></div></div>
+</section>
+<footer>投籃追蹤器 · 資料僅儲存在此裝置的瀏覽器中</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const today=()=>new Date().toLocaleDateString('sv-SE');
+let shots=[], sessions=loadSessions(), activeStarted=Date.now(), streak=0,bestStreak=0,missStreak=0;
+$('sessionDate').value=today();
+function loadSessions(){try{return JSON.parse(localStorage.getItem('shotTrackerSessions')||'[]')}catch(e){return []}}
+function persist(){localStorage.setItem('shotTrackerSessions',JSON.stringify(sessions))}
+function currentSpot(){return $('shotSpot').value==='自訂位置'?($('customSpot').value.trim()||'自訂位置'):$('shotSpot').value}
+$('shotSpot').addEventListener('change',()=>{$('customWrap').style.display=$('shotSpot').value==='自訂位置'?'block':'none'});
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===b.dataset.view));if(b.dataset.view==='history')renderHistory();if(b.dataset.view==='analysis')renderAnalysis()}));
+function addShot(made){shots.push({made,type:$('shotType').value,spot:currentSpot(),time:new Date().toISOString()});calc();autosaveDraft()}
+function calc(){let made=shots.filter(s=>s.made).length;streak=0;missStreak=0;bestStreak=0;let run=0;for(const s of shots){if(s.made){run++;bestStreak=Math.max(bestStreak,run)}else run=0}for(let i=shots.length-1;i>=0&&shots[i].made;i--)streak++;for(let i=shots.length-1;i>=0&&!shots[i].made;i--)missStreak++;$('made').textContent=made;$('attempts').textContent=shots.length;$('pct').textContent=(shots.length?made/shots.length*100:0).toFixed(1)+'%';$('progressBar').style.width=(shots.length?made/shots.length*100:0)+'%';$('streak').textContent=streak;$('bestStreak').textContent=bestStreak;$('missStreak').textContent=missStreak}
+function autosaveDraft(){try{localStorage.setItem('shotTrackerDraft',JSON.stringify({shots,date:$('sessionDate').value,name:$('sessionName').value,type:$('shotType').value,spot:$('shotSpot').value,custom:$('customSpot').value,notes:$('sessionNotes').value,started:activeStarted}))}catch(e){}}
+function restoreDraft(){try{let d=JSON.parse(localStorage.getItem('shotTrackerDraft')||'null');if(d){shots=d.shots||[];$('sessionDate').value=d.date||today();$('sessionName').value=d.name||'';$('shotType').value=d.type||'兩分球';$('shotSpot').value=d.spot||'籃下';$('customSpot').value=d.custom||'';$('sessionNotes').value=d.notes||'';$('customWrap').style.display=$('shotSpot').value==='自訂位置'?'block':'none';activeStarted=d.started||Date.now();calc()}}catch(e){}}
+$('makeBtn').onclick=()=>addShot(true);$('missBtn').onclick=()=>addShot(false);
+$('undoBtn').onclick=()=>{if(shots.length){shots.pop();calc();autosaveDraft()}};
+$('clearBtn').onclick=()=>{if(confirm('確定清除此回合的所有投籃？')){shots=[];calc();autosaveDraft()}};
+$('newBtn').onclick=()=>{if(shots.length&&!confirm('目前回合尚未儲存，仍要開始新回合嗎？'))return;shots=[];activeStarted=Date.now();$('sessionName').value='';$('sessionNotes').value='';calc();autosaveDraft()};
+['sessionDate','sessionName','shotType','shotSpot','customSpot','sessionNotes'].forEach(id=>$(id).addEventListener('change',autosaveDraft));
+$('saveBtn').onclick=()=>{if(!shots.length){alert('目前沒有投籃紀錄。');return}let made=shots.filter(s=>s.made).length;let session={id:Date.now().toString(),date:$('sessionDate').value||today(),name:$('sessionName').value.trim()||'自主投籃',notes:$('sessionNotes').value.trim(),started:activeStarted,ended:Date.now(),shots:[...shots],made,attempts:shots.length,pct:made/shots.length*100};sessions.unshift(session);persist();localStorage.removeItem('shotTrackerDraft');shots=[];activeStarted=Date.now();calc();renderHistory();alert('訓練已儲存！');};
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderHistory(){ $('sessionCount').textContent=sessions.length+' 次';let box=$('historyList');if(!sessions.length){box.className='empty';box.textContent='尚無已儲存的訓練';return}box.className='';box.innerHTML=sessions.map(s=>`<div class="listitem"><div class="itemtop"><strong>${esc(s.name)}</strong><span class="pill">${s.pct.toFixed(1)}%</span></div><div class="small">${esc(s.date)} · ${s.made}/${s.attempts} 命中 · ${s.shots.length} 次出手</div>${s.notes?`<div class="small" style="margin-top:5px">${esc(s.notes)}</div>`:''}<div class="btnrow" style="margin-top:8px"><button class="btn" onclick="viewSession('${s.id}')">查看明細</button><button class="btn warn" onclick="deleteSession('${s.id}')">刪除此回合</button></div><div id="detail-${s.id}"></div></div>`).join('')}
+window.viewSession=id=>{let s=sessions.find(x=>x.id===id),el=$('detail-'+id);if(!s||!el)return;if(el.innerHTML){el.innerHTML='';return}let groups={};s.shots.forEach(x=>{let k=x.type+'｜'+x.spot;groups[k]??={m:0,a:0};groups[k].a++;if(x.made)groups[k].m++});el.innerHTML='<table><thead><tr><th>球種／位置</th><th>命中</th><th>命中率</th></tr></thead><tbody>'+Object.entries(groups).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v.m}/${v.a}</td><td>${(v.m/v.a*100).toFixed(1)}%</td></tr>`).join('')+'</tbody></table>'};
+window.deleteSession=id=>{if(confirm('確定刪除此訓練紀錄？')){sessions=sessions.filter(s=>s.id!==id);persist();renderHistory();renderAnalysis()}};
+function grouped(key){let g={};sessions.forEach(s=>s.shots.forEach(x=>{let k=x[key]||'未分類';g[k]??={m:0,a:0};g[k].a++;if(x.made)g[k].m++}));return Object.entries(g).sort((a,b)=>b[1].a-a[1].a)}
+function tableStats(entries){if(!entries.length)return '<div class="empty">尚無資料</div>';return '<table><thead><tr><th>分類</th><th>命中／出手</th><th>命中率</th></tr></thead><tbody>'+entries.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v.m}/${v.a}</td><td>${(v.m/v.a*100).toFixed(1)}%</td></tr>`).join('')+'</tbody></table>'}
+function renderAnalysis(){let all=sessions.flatMap(s=>s.shots),m=all.filter(s=>s.made).length;$('allMade').textContent=m;$('allAttempts').textContent=all.length;$('allPct').textContent=(all.length?m/all.length*100:0).toFixed(1)+'%';$('analysisSummary').textContent=`共 ${sessions.length} 次訓練；平均每次出手 ${sessions.length?(all.length/sessions.length).toFixed(1):0} 球。命中率以所有已記錄出手加總計算。`;$('typeStats').innerHTML=tableStats(grouped('type'));$('spotStats').innerHTML=tableStats(grouped('spot'));let recent=sessions.slice(0,10);$('recentStats').innerHTML=recent.length?'<table><thead><tr><th>日期</th><th>訓練</th><th>命中／出手</th><th>命中率</th></tr></thead><tbody>'+recent.map(s=>`<tr><td>${esc(s.date)}</td><td>${esc(s.name)}</td><td>${s.made}/${s.attempts}</td><td>${s.pct.toFixed(1)}%</td></tr>`).join('')+'</tbody></table>':'<div class="empty">尚無資料</div>'}
+function download(name,data,type){let blob=new Blob([data],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+$('exportJson').onclick=()=>download('shot-tracker-backup-'+today()+'.json',JSON.stringify({version:1,exportedAt:new Date().toISOString(),sessions},null,2),'application/json');
+$('exportCsv').onclick=()=>{let rows=[['訓練日期','訓練名稱','球種','位置','結果','時間','備註']];sessions.forEach(s=>s.shots.forEach(x=>rows.push([s.date,s.name,x.type,x.spot,x.made?'命中':'投失',x.time,s.notes||''])));let csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');download('shot-tracker-shots-'+today()+'.csv',csv,'text/csv;charset=utf-8')};
+$('importFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let d=JSON.parse(await f.text());if(!Array.isArray(d.sessions))throw Error('格式錯誤');if(confirm(`備份中有 ${d.sessions.length} 次訓練。匯入會取代目前紀錄，確定繼續？`)){sessions=d.sessions;persist();renderHistory();renderAnalysis();alert('備份還原完成')}}catch(err){alert('無法匯入：請選擇本程式匯出的 JSON 備份。')}e.target.value=''};
+$('deleteAll').onclick=()=>{if(confirm('確定永久刪除所有歷史訓練？建議先匯出備份。')){sessions=[];persist();renderHistory();renderAnalysis()}};
+restoreDraft();renderHistory();renderAnalysis();
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body></html>
